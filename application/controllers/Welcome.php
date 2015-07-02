@@ -53,4 +53,8 @@ class Welcome extends CI_Controller {
 		$data[] = array('shop_nick'=>'创维官方旗舰店','store_name'=>'佛山B29','name'=>'测试商品','VENDIBLE'=>'211');
 		echo $this->excel->extraExcel($data);
 	}
+	public function my_miniui()
+	{
+		$this->load->view('miniui');
+	}
 }
