@@ -20,6 +20,9 @@ class Welcome extends CI_Controller {
 	 */
 	public function index()
 	{
+		$this->load->model("Welcome_Model",'welcome');
+		echo "<pre>";
+		print_r($this->welcome->get_all(array(),'*','iid','desc'));
 		$this->load->view('welcome_message');
 	}
 
