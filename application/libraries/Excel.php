@@ -1,4 +1,5 @@
-<?php if(!defined('BASEPATH')) exit('No direct access ');
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
  *		Codeigniter PHPExcel扩展
@@ -7,11 +8,11 @@
  *		$this->load->add_package_path(APPPATH.'third_party/PHPExcel');
  *		$this->load->library('Excel');
  *		//设置导出文件名称
- *		$this->excel->setExcelTitle("test");
+ *		$this->excel->setExcelTitle('test');
  *		//设置表头
  *		$this->excel->setExcelFields(array('shop_nick'=>'店铺名称','store_name'=>'库房名称','name'=>'商品名称','VENDIBLE'=>'可销库存'));
  *		//如果需要保存生成记录，则需在生成设置表格记录名
- *		//$this->excel->setExcelName("测试导表");
+ *		//$this->excel->setExcelName('测试导表');
  *		//如果需要保存生成记录，则需在生成excel前创建一条记录
  *		//$this->excel->getOneRecord();
  *		$data = array();
@@ -25,7 +26,8 @@
  *		//传入表格文件地址，读取，获得数组
  *		$data = $this->excel->readExcel($filepath);
  */
-define("PHPExcel_BASE_DIR", APPPATH . "third_party/");
+define('PHPExcel_BASE_DIR', APPPATH . 'third_party/');
+require PHPExcel_BASE_DIR . 'PHPExcel.php';
 
 class Excel
 {
@@ -36,7 +38,7 @@ class Excel
 	public $_excelName;
 	public $_excelFields;
 	private $_excelId;
-	private $_excelRecordSaveType = 'none';//也支持file，也可随便填其他，即代表不保存，可以自行保存
+	private $_excelRecordSaveType = 'none';//支持database,file，也可随便填其他，即代表不保存，可以自行保存
 	const EXCELFILE_PATH = 'excelFiles/';	//定义常量Excel路径
 
 	/**
@@ -48,7 +50,7 @@ class Excel
 	{	
 		$this->CI =& get_instance();	
 		set_time_limit(300);
-		ini_set("memory_limit","256M");
+		ini_set('memory_limit','256M');
 		//判断是否存在excel文件的根目录
 		$this->checkFloderExists(self::EXCELFILE_PATH);
 	}
@@ -87,14 +89,12 @@ class Excel
 	public function extraExcel($content)
 	{
 		if(!$this->_excelId && in_array($this->_excelRecordSaveType,array('database','file'))){
-			$this->_halt("You must create a record with getOneRecord() first!");
+			$this->_halt('You must create a record with getOneRecord() first!');
 		}
 		//参数是否存在
 		if(empty($this->_excelTitle) || empty($this->_excelFields)|| empty($content)){
-			$this->_halt("excelTitle,excelFields,content can not be empty!");
+			$this->_halt('excelTitle,excelFields,content can not be empty!');
 		}
-		//引入类文件
-		require_once PHPExcel_BASE_DIR . 'PHPExcel.php';
 
 		// 创建PHPExcel对象    
 		$objPHPExcel = new PHPExcel(); 
@@ -132,7 +132,7 @@ class Excel
 			$result->$key = new StdClass;
 			foreach($this->_excelFields as $k=>$v)
 			{
-				$result->$key->$k = isset($value[$k])?$value[$k]:"";
+				$result->$key->$k = isset($value[$k])?$value[$k]:'';
 				$ccol++;	
 			}
 		}
@@ -158,13 +158,13 @@ class Excel
 		$PHPWriter = $PHPExcel2007->setPHPExcel($objPHPExcel);
 
 		//判断文件夹是否存在，如果不存在就创建新的文件夹
-		$savePath = self::EXCELFILE_PATH.date('Ymd')."/";
+		$savePath = self::EXCELFILE_PATH.date('Ymd').'/';
 		$this->checkFloderExists($savePath);
 
 		//设置文件名 
-		list($usec, $sec) = explode(" ", microtime());
-		$tail = date('YmdHis').str_replace("0.","",$usec);
-		$fileName = $savePath.mb_convert_encoding($this->_excelTitle, "GB2312", "UTF-8").'_'.$tail.'.xlsx'; 
+		list($usec, $sec) = explode(' ', microtime());
+		$tail = date('YmdHis').str_replace('0.','',$usec);
+		$fileName = $savePath.mb_convert_encoding($this->_excelTitle, 'GB2312', 'UTF-8').'_'.$tail.'.xlsx'; 
 		$downUrl = $savePath.$this->_excelTitle.'_'.$tail.'.xlsx';
 
 		//导出的文件
@@ -184,20 +184,20 @@ class Excel
 		if(empty($_FILES)){
 			return FALSE;
 		}
-		$extend = pathinfo($_FILES["file"]["name"]);  
-		$filePath = self::EXCELFILE_PATH."tempfiles/";
+		$extend = pathinfo($_FILES['file']['name']);  
+		$filePath = self::EXCELFILE_PATH.'tempfiles/';
 		$this->checkFloderExists($filePath);
-		$fileName = empty($name)?date("YmdHis").'code.'.$extend["extension"]:$name.'.'.$extend["extension"];
-		move_uploaded_file($_FILES["file"]["tmp_name"],$filePath . $fileName);
+		$fileName = empty($name)?date('YmdHis').'code.'.$extend['extension']:$name.'.'.$extend['extension'];
+		move_uploaded_file($_FILES['file']['tmp_name'],$filePath . $fileName);
 		return $filePath . $fileName;
 	}
 	/**
 	 * excel读取方法
 	 */
-	public function readExcel($file)
+	public function readExcel($file = '')
 	{
-		//引入类文件
-		require_once PHPExcel_BASE_DIR . 'PHPExcel.php';
+		if(!file_exists($file))
+			$this->_halt('Can not find excelfile!');
 		$PHPExcel = new PHPExcel();
 		//读取2007格式的Excel
 		$PHPReader = new PHPExcel_Reader_Excel2007();
@@ -207,7 +207,7 @@ class Excel
 			$PHPReader = new PHPExcel_Reader_Excel5();
 			//判断是否为正确的Excel文件
 			if (!$PHPReader->canRead($file)) {
-				exit('no Excel');
+				$this->_halt('Can not read excelfile!');
 			}
 		}
 		$PHPExcel = $PHPReader->load($file);
@@ -232,17 +232,17 @@ class Excel
 		if($this->_excelRecordSaveType == 'database')
 		{
 			//生成状态前纪录一条数据
-			$sql = " insert into php_excel_record (excel_title,created_time,status,admin_name) 
-					values('".$this->_excelTitle."','".date('Y-m-d H:i:s')."','正在生成中','$admin_name')";
+			$sql = ' insert into php_excel_record (excel_title,created_time,status,admin_name) 
+					values(''.$this->_excelTitle.'',''.date('Y-m-d H:i:s').'','正在生成中','$admin_name')';
 			$query = $this->CI->db->query($sql);
 			$_excelId = $this->CI->db->insert_id();
 			return $this->_excelId = $_excelId;
 		}
 		if($this->_excelRecordSaveType == 'file')
 		{
-			$record_file = self::EXCELFILE_PATH."record_file.txt";
-			file_put_contents($record_file,$this->_excelTitle.",".date('Y-m-d H:i:s').",,正在生成中,,".$admin_name."\r\n",FILE_APPEND);
-			return $this->_excelId = count(explode("\r\n",file_get_contents($record_file)))-1;
+			$record_file = self::EXCELFILE_PATH.'record_file.txt';
+			file_put_contents($record_file,$this->_excelTitle.','.date('Y-m-d H:i:s').',,正在生成中,,'.$admin_name.'\r\n',FILE_APPEND);
+			return $this->_excelId = count(explode('\r\n',file_get_contents($record_file)))-1;
 		}
 	}
 	/**
@@ -254,20 +254,20 @@ class Excel
 		{
 			if($this->_excelId && $downUrl){
 				//记录到生成php_excel_record表内
-				$sql = " update php_excel_record set finished_time='".date('Y-m-d H:i:s')."',status='完成',down_url='".$downUrl."' where id=".$this->_excelId;
+				$sql = ' update php_excel_record set finished_time=''.date('Y-m-d H:i:s').'',status='完成',down_url=''.$downUrl.'' where id='.$this->_excelId;
 				$query = $this->CI->db->query($sql);
 			}
 		}
 		if($this->_excelRecordSaveType == 'file')
 		{
-			$record_file = self::EXCELFILE_PATH."record_file.txt";
-			$data= explode("\r\n",file_get_contents($record_file));
-			$temp = explode(",",$data[$this->_excelId - 1]);
+			$record_file = self::EXCELFILE_PATH.'record_file.txt';
+			$data= explode('\r\n',file_get_contents($record_file));
+			$temp = explode(',',$data[$this->_excelId - 1]);
 			$temp[2] = date('Y-m-d H:i:s');
 			$temp[3] = '完成';
 			$temp[4] = $downUrl;
-			$data[$this->_excelId - 1] = implode(",",$temp);
-			file_put_contents($record_file,implode("\r\n",$data));
+			$data[$this->_excelId - 1] = implode(',',$temp);
+			file_put_contents($record_file,implode('\r\n',$data));
 		}
 	}
 	/**
@@ -278,10 +278,10 @@ class Excel
 		//记录保存方式 是数据库  还是 文件
 		if($this->_excelRecordSaveType == 'database')
 		{
-			$table = $this->CI->db->query("SHOW TABLES LIKE 'php_excel_record' ")->row_array();
+			$table = $this->CI->db->query('SHOW TABLES LIKE 'php_excel_record' ')->row_array();
 			//验证是否存在记录表，如果不存在则创建一个
 			if(!$table){
-				$this->CI->db->query("CREATE TABLE `php_excel_record` (
+				$this->CI->db->query('CREATE TABLE `php_excel_record` (
 							  `id` int(8) NOT NULL AUTO_INCREMENT,
 							  `excel_title` text NOT NULL,
 							  `created_time` datetime DEFAULT NULL,
@@ -290,13 +290,13 @@ class Excel
 							  `down_url` varchar(500) DEFAULT NULL,
 							  `admin_name` varchar(32) DEFAULT NULL,
 							  PRIMARY KEY (`id`)
-							) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 COMMENT='生成导出数据表';");
+							) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 COMMENT='生成导出数据表';');
 			}
 		}
 		
 		if($this->_excelRecordSaveType == 'file')
 		{
-			$record_file = self::EXCELFILE_PATH."record_file.txt";
+			$record_file = self::EXCELFILE_PATH.'record_file.txt';
 			if(!file_exists($record_file))
 			{
 				file_put_contents($record_file,'');

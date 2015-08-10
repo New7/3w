@@ -133,6 +133,15 @@ class MY_Model extends CI_Model {
         return $this->db->replace($this->_table_name, $data);
     }
 
+	public function last_query()
+	{
+		return $this->db->last_query();
+	}
+
+	public function table_exists($table)
+	{
+		return $this->db->table_exists($table);
+	}
 }
 
 /* End of file MY_Model.php */

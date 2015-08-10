@@ -21,14 +21,12 @@ class Welcome extends CI_Controller {
 	public function index()
 	{
 		$this->load->model("Welcome_Model",'welcome');
-		echo "<pre>";
-		print_r($this->welcome->get_all(array(),'*','iid','desc'));
+		print_d($this->welcome->get_all(array(),'*','iid','desc'));
 		$this->load->view('welcome_message');
 	}
 
 	public function my_topsdk()
 	{
-		$this->load->add_package_path(APPPATH.'third_party/TopSdk');
 		$this->load->library('Tbao');
 		$this->tbao->setAppkey('21406887');
 		$this->tbao->setSecret('baf2e6762c10bfac37ebfc26eb8c08c1');
@@ -41,7 +39,6 @@ class Welcome extends CI_Controller {
 
 	public function my_excel()
 	{
-		$this->load->add_package_path(APPPATH.'third_party/PHPExcel');
 		$this->load->library('Excel');//导出excel
 		//设置导出文件名称
 		$this->excel->setExcelTitle("test");
@@ -55,6 +52,12 @@ class Welcome extends CI_Controller {
 		$data[] = array('shop_nick'=>'创维官方旗舰店','store_name'=>'北京B27','name'=>'测试商品','VENDIBLE'=>'105');
 		$data[] = array('shop_nick'=>'创维官方旗舰店','store_name'=>'佛山B29','name'=>'测试商品','VENDIBLE'=>'211');
 		echo $this->excel->extraExcel($data);
+	}
+	public function my_excel_read()
+	{
+		$this->load->library('Excel');//导出excel
+		$data = $this->excel->readExcel('excelFiles\xxx.xlsx');
+		print_d($data);
 	}
 	public function my_miniui()
 	{

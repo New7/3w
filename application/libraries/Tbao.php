@@ -1,7 +1,8 @@
 <?PHP
-define("TOP_SDK_BASE_DIR", APPPATH . "third_party/TopSdk/");
+defined('BASEPATH') OR exit('No direct script access allowed');
 
-require_once TOP_SDK_BASE_DIR . 'TopSdk.php';
+define('TOP_SDK_BASE_DIR', APPPATH . 'third_party/TopSdk/');
+require TOP_SDK_BASE_DIR . 'TopSdk.php';
 
 Class Tbao
 {
@@ -29,7 +30,7 @@ Class Tbao
 		}
 		$this->top_cilent->appkey = $this->app_key;
 		$this->top_cilent->secretKey = $this->secret_key;
-		log_message('debug', "TopSdk Class Initialized");
+		log_message('debug', 'TopSdk Class Initialized');
 	}
 
 	// ------------------------------------------------------------------------
@@ -46,7 +47,7 @@ Class Tbao
 	public function __call($method, $args)
 	{
 		if (!is_object($this->_req)) {
-			throw new Exception("没有初始化请求方法", 1);
+			throw new Exception('没有初始化请求方法', 1);
 		}
 		//var_dump($args);
         if(method_exists($this->_req, $method))
@@ -131,7 +132,7 @@ Class Tbao
 	public function getData()
 	{
 		$resp = $this->top_cilent->execute($this->_req,$this->session_key);
-        if ("array" == $this->format) {	
+        if ('array' == $this->format) {	
 			$resp = $this->_get_object_vars_final($resp);
 		}
 		return $resp;
@@ -153,7 +154,7 @@ Class Tbao
 		//$request = $this->to_camel_case($request);
 		$allow_requests = $this->_get_all_request();
 		if (!in_array($request, $allow_requests)) {
-			throw new Exception("不支持当前请求方法", 1);
+			throw new Exception('不支持当前请求方法', 1);
 			return FALSE;
 		}
 		$this->_req = new $request;
@@ -175,7 +176,7 @@ Class Tbao
 	{
 		$_requests = array();
 		foreach (glob(TOP_SDK_BASE_DIR.'top/request/*.php') as $filename) {
-		    $_requests[] = preg_replace("#.php$#", "", basename($filename)) ;
+		    $_requests[] = preg_replace('#.php$#', '', basename($filename)) ;
 		}
 		return $_requests;
 	}
